@@ -66,7 +66,7 @@ def densenet(images, num_classes=1001, is_training=False,
             end_points['conv_3x3_1'] = net
             net = block(net, 6, growth, scope='block1')
             end_points['block1'] = net
-            with slim.variable_scope('transition_1'):
+            with tf.variable_scope('transition_1'):
                 transition_1 = slim.conv2d(net, reduce_dim(
                     net), [1, 1], padding='SAME', scope='conv1x1')
                 transition_1 = slim.avg_pool2d(
@@ -75,7 +75,7 @@ def densenet(images, num_classes=1001, is_training=False,
             end_points['transition_1'] = net
             net = block(net, 6, growth, scope='block2')
             end_points['block2'] = net
-            with slim.variable_scope('transition_2'):
+            with tf.variable_scope('transition_2'):
                 transition_2 = slim.conv2d(net, reduce_dim(
                     net), [1, 1], padding='SAME', scope='conv1x1')
                 transition_2 = slim.avg_pool2d(
