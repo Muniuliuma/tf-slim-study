@@ -89,7 +89,7 @@ def densenet(images, num_classes=1001, is_training=False,
             #     net, [224, 224], stride=1, padding='SAME', scope='global_pool')
 
             net = tf.reduce_mean(
-                net, [1, 2], keep_dims=True, name='global_pool')
+                net, [1, 2], keepdims=False, name='global_pool')
             end_points['global_pool'] = net
             logits = slim.conv2d(net, num_classes, [
                                  1, 1], scope='logits')
