@@ -86,9 +86,8 @@ def densenet(images, num_classes=1001, is_training=False,
             net = slim.batch_norm(net)
             net = tf.nn.relu(net)
             net = slim.avg_pool2d(
-                net, [240, 240], stride=1, padding='SAME', scope='global_pool')
+                net, [224, 224], stride=1, padding='SAME', scope='global_pool')
 
-            # net = tf.reduce_mean(net, name='global_pool', keep_dims=True)
             end_points['global_pool'] = net
             logits = slim.conv2d(net, num_classes, [
                                  1, 1], scope='logits')
