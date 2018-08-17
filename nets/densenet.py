@@ -50,7 +50,7 @@ def densenet(images, num_classes=1001, is_training=False,
       end_points: a dictionary from components of the network to the corresponding
         activation.
     """
-    growth = 24
+    growth = 12
     compression_rate = 0.5
 
     def reduce_dim(input_feature):
@@ -82,9 +82,13 @@ def densenet(images, num_classes=1001, is_training=False,
             end_points['transition_2'] = net
             net = block(net, 6, growth, scope='block3')
             end_points['block3'] = net
-            # net = slim.avg_pool2d(
-            # net, [240, 240], stride=1, padding='SAME', scope='global_pool')
-            net = tf.reduce_mean(net, name='global_pool', keep_dims=True)
+
+            net = slim.batch_norm(net)
+            net = tf.nn.relu(net)
+            net = slim.avg_pool2d(
+                net, [240, 240], stride=1, padding='SAME', scope='global_pool')
+
+            # net = tf.reduce_mean(net, name='global_pool', keep_dims=True)
             end_points['global_pool'] = net
             logits = slim.conv2d(net, num_classes, [
                                  1, 1], scope='logits')
