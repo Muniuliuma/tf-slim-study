@@ -15,7 +15,8 @@ def trunc_normal(stddev): return tf.truncated_normal_initializer(stddev=stddev)
 def bn_act_conv_drp(current, num_outputs, kernel_size, scope='block'):
     current = slim.batch_norm(current, scope=scope + '_bn')
     current = tf.nn.relu(current)
-    current = slim.conv2d(current, num_outputs, kernel_size, scope=scope + '_conv')
+    current = slim.conv2d(current, num_outputs,
+                          kernel_size, scope=scope + '_conv')
     current = slim.dropout(current, scope=scope + '_dropout')
     return current
 
@@ -60,11 +61,35 @@ def densenet(images, num_classes=1001, is_training=False,
     with tf.variable_scope(scope, 'DenseNet', [images, num_classes]):
         with slim.arg_scope(bn_drp_scope(is_training=is_training,
                                          keep_prob=dropout_keep_prob)) as ssc:
-            pass
-            ##########################
-            # Put your code here.
-            ##########################
-
+            net = slim.conv2d(images, growth*2,
+                              [3, 3], padding='SAME', scope='conv_3x3_1')
+            end_points['conv_3x3_1'] = net
+            net = block(net, 6, growth, scope='block1')
+            end_points['block1'] = net
+            with slim.variable_scope('transition_1'):
+                transition_1 = slim.conv2d(net, reduce_dim(
+                    net), [1, 1], padding='SAME', scope='conv1x1')
+                transition_1 = slim.avg_pool2d(
+                    net, [2, 2], stride=2, padding='VALID', scope='pooling')
+                net = tf.concat(axis=3, values=[net, transition_1])
+            end_points['transition_1'] = net
+            net = block(net, 6, growth, scope='block2')
+            end_points['block2'] = net
+            with slim.variable_scope('transition_2'):
+                transition_2 = slim.conv2d(net, reduce_dim(
+                    net), [1, 1], padding='SAME', scope='conv1x1')
+                transition_2 = slim.avg_pool2d(
+                    net, [2, 2], stride=2, padding='VALID', scope='pooling')
+                net = tf.concat(axis=3, values=[net, transition_2])
+            end_points['transition_2'] = net
+            net = block(net, 6, growth, scope='block3')
+            end_points['block3'] = net
+            net = slim.avg_pool2d(
+                net, [240, 240], stride=1, padding='SAME', scope='global_pool')
+            end_points['global_pool'] = net
+            logits = slim.conv2d(net, num_classes, [
+                                 1, 1], scope='logits')
+            end_points['logits'] = logits
     return logits, end_points
 
 
