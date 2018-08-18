@@ -61,40 +61,41 @@ def densenet(images, num_classes=1001, is_training=False,
     with tf.variable_scope(scope, 'DenseNet', [images, num_classes]):
         with slim.arg_scope(bn_drp_scope(is_training=is_training,
                                          keep_prob=dropout_keep_prob)) as ssc:
-            net = slim.conv2d(images, growth*2,
-                              [3, 3], padding='SAME', scope='conv_3x3_1')
-            end_points['conv_3x3_1'] = net
-            net = block(net, 6, growth, scope='block1')
-            end_points['block1'] = net
-            with tf.variable_scope('transition_1'):
-                net = slim.conv2d(net, reduce_dim(
-                    net), [1, 1], padding='SAME', scope='conv1x1')
-                net = slim.avg_pool2d(
-                    net, [2, 2], stride=2, padding='VALID', scope='pooling')
-            end_points['transition_1'] = net
-            net = block(net, 6, growth, scope='block2')
-            end_points['block2'] = net
-            with tf.variable_scope('transition_2'):
-                net = slim.conv2d(net, reduce_dim(
-                    net), [1, 1], padding='SAME', scope='conv1x1')
-                net = slim.avg_pool2d(
-                    net, [2, 2], stride=2, padding='VALID', scope='pooling')
-            end_points['transition_2'] = net
-            net = block(net, 6, growth, scope='block3')
-            end_points['block3'] = net
+            with slim.arg_scope(densenet_arg_scope()):
+                net = slim.conv2d(images, growth*2,
+                                [3, 3], padding='SAME', scope='conv_3x3_1')
+                end_points['conv_3x3_1'] = net
+                net = block(net, 6, growth, scope='block1')
+                end_points['block1'] = net
+                with tf.variable_scope('transition_1'):
+                    net = slim.conv2d(net, reduce_dim(
+                        net), [1, 1], padding='SAME', scope='conv1x1')
+                    net = slim.avg_pool2d(
+                        net, [2, 2], stride=2, padding='VALID', scope='pooling')
+                end_points['transition_1'] = net
+                net = block(net, 6, growth, scope='block2')
+                end_points['block2'] = net
+                with tf.variable_scope('transition_2'):
+                    net = slim.conv2d(net, reduce_dim(
+                        net), [1, 1], padding='SAME', scope='conv1x1')
+                    net = slim.avg_pool2d(
+                        net, [2, 2], stride=2, padding='VALID', scope='pooling')
+                end_points['transition_2'] = net
+                net = block(net, 6, growth, scope='block3')
+                end_points['block3'] = net
 
-            # net = slim.batch_norm(net)
-            # net = tf.nn.relu(net)
-            # net = slim.avg_pool2d(
-            #     net, [224, 224], stride=1, padding='SAME', scope='global_pool')
+                # net = slim.batch_norm(net)
+                # net = tf.nn.relu(net)
+                # net = slim.avg_pool2d(
+                #     net, [224, 224], stride=1, padding='SAME', scope='global_pool')
 
-            net = tf.reduce_mean(
-                net, [1, 2], keep_dims=True, name='global_pool')
-            end_points['global_pool'] = net
-            logits = slim.conv2d(net, num_classes, [
-                                 1, 1], scope='logits')
-            logits = tf.squeeze(logits, [1, 2], name='SpatialSqueeze')
-            end_points['logits'] = logits
+                net = tf.reduce_mean(
+                    net, [1, 2], keep_dims=True, name='global_pool')
+                end_points['global_pool'] = net
+                logits = slim.conv2d(net, num_classes, [
+                                    1, 1], scope='logits')
+                logits = tf.squeeze(logits, [1, 2], name='SpatialSqueeze')
+                end_points['logits'] = logits
     return logits, end_points
 
 
