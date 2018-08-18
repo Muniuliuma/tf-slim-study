@@ -62,7 +62,7 @@ def densenet(images, num_classes=1001, is_training=False,
         with slim.arg_scope(bn_drp_scope(is_training=is_training,
                                          keep_prob=dropout_keep_prob)) as ssc:
             with slim.arg_scope(densenet_arg_scope()):
-                net = slim.conv2d(images, growth*2,
+                net = slim.conv2d(images, 16,
                                 [3, 3], padding='SAME', scope='conv_3x3_1')
                 end_points['conv_3x3_1'] = net
                 net = block(net, 6, growth, scope='block1')
