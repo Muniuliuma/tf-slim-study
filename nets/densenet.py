@@ -63,21 +63,22 @@ def densenet(images, num_classes=1001, is_training=False,
                                          keep_prob=dropout_keep_prob)) as ssc:
             with slim.arg_scope(densenet_arg_scope()):
                 net = slim.conv2d(images, 16,
-                                [3, 3], padding='SAME', scope='conv_3x3_1')
+                                [7, 7], stride=2,padding='SAME', scope='conv_7x7_1')
+                net=slim.max_pool2d(net,[3,3],stride=2,padding='SAME',scope='max_pool_3x3')
                 end_points['conv_3x3_1'] = net
                 net = block(net, 6, growth, scope='block1')
                 end_points['block1'] = net
                 with tf.variable_scope('transition_1'):
-                    net = slim.conv2d(net, reduce_dim(
-                        net), [1, 1], padding='SAME', scope='conv1x1')
+                    net = bn_act_conv_drp(net, reduce_dim(
+                        net), [1, 1], scope='conv1x1')
                     net = slim.avg_pool2d(
                         net, [2, 2], stride=2, padding='VALID', scope='pooling')
                 end_points['transition_1'] = net
                 net = block(net, 6, growth, scope='block2')
                 end_points['block2'] = net
                 with tf.variable_scope('transition_2'):
-                    net = slim.conv2d(net, reduce_dim(
-                        net), [1, 1], padding='SAME', scope='conv1x1')
+                    net = bn_act_conv_drp(net, reduce_dim(
+                        net), [1, 1], scope='conv1x1')
                     net = slim.avg_pool2d(
                         net, [2, 2], stride=2, padding='VALID', scope='pooling')
                 end_points['transition_2'] = net
@@ -89,6 +90,8 @@ def densenet(images, num_classes=1001, is_training=False,
                 # net = slim.avg_pool2d(
                 #     net, [224, 224], stride=1, padding='SAME', scope='global_pool')
 
+                net=slim.batch_norm(net,scope='last_batch')
+                net=tf.nn.relu(net)
                 net = tf.reduce_mean(
                     net, [1, 2], keep_dims=True, name='global_pool')
                 end_points['global_pool'] = net
